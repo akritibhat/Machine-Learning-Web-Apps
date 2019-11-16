@@ -3,7 +3,6 @@ from flask import Flask,render_template,request,url_for
 #EDA Packages
 import pandas as pd
 import numpy as np
-import os
 import psycopg2
 
 db_user = "postgres"
