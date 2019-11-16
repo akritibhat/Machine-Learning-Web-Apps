@@ -8,11 +8,40 @@ import numpy as np
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 
+from twilio.rest import Client
+from twilio.twiml.messaging_response import MessagingResponse
+
+
 app = Flask(__name__)
 
 @app.route("/")
 def index():
 	return render_template("index.html")
+
+@app.route("/sms", methods=['GET', 'POST'])
+def sms_ahoy_reply():
+    """Respond to incoming messages with a friendly SMS."""
+    # Start our response
+    resp = MessagingResponse()
+
+    # Add a message
+    resp.message("Ahoy! Thanks so much for your message.")
+
+    return str(resp)
+
+def send_sms():
+	account_sid = 'ACf3d029ace0ab2f696f9f971c11696f91'
+	auth_token = 'your_auth_token'
+	client = Client(account_sid, auth_token)
+
+	message = client.messages \
+		.create(
+		body="Join Earth's mightiest heroes. Like Kevin Bacon.",
+		from_='+15017122661',
+		to='+15558675310'
+	)
+
+	print(message.sid)
 
 @app.route("/",methods=['POST'])
 def predict():
