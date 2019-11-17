@@ -1,6 +1,8 @@
 Flask==1.1.0
-gunicorn==19.6.0	
+gunicorn==19.6.0
 pandas==0.22.0
 numpy==1.11.2
 scipy==0.18.1
 scikit-learn>=0.18
+twilio==6.33.1
+psycopg2==2.8.4

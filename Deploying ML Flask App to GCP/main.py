@@ -1,23 +1,16 @@
 from flask import Flask,render_template,request,url_for
-
-#EDA Packages
 import pandas as pd
 import numpy as np
-
-# ML Packages
-
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 import psycopg2
-
+import json
 import pprint
 import sys
-
 import spotipy
 import spotipy.util as util
 
 app = Flask(__name__)
-
 
 @app.route("/")
 def index():
@@ -25,10 +18,57 @@ def index():
 	#send_sms('+18572648772')
 	return render_template("index.html")
 
+def placeBid(id, bid):
+	con.execute('select credits from users where id={};'.format(bid))
+	credits = con.fetchone()
+	if credits >= bid:
+		con.execute('update users set credits={} where id={};'.format(credits-bid,id))
+	else:
+		con.execute('select phone_number from users where id={};'.format(id))
+		send_sms(con.fetchone(), "You don't have enough credits. Credits:{}".format(credits))
+
+def getNextSong():
+	song_id = int(con.execute('select id from songs order by bid_amount desc limit 1;'))
+	con.execute('delete from songs where id={};'.format(id))
+
+def getJSON():
+	x=[con.execute('select sum(cur_bid) from songs;'),
+	con.execute('select song_name from songs where cur_song = 't';'),
+	con.execute('select song_name from songs where cur_song = 't';'),
+	con.execute('select cur_bid from songs where cur_song = 't';'),
+
+	 ]
+	return {
+	"totalRaised": [{
+		"cur_bid": %d
+	}],
+	"current": [{
+		"song_name": %s
+	}],
+	"nextOne": [{
+		"song_name": %s,
+		"cur_bid": %d
+	}],
+	"nextTwo": [{
+		"song_name": %s,
+		"cur_bid": %d
+	}],
+	"nextThree": [{
+		"song_name": %s,
+		"cur_bid": %d
+	}],
+	"nextFour": [{
+		"song_name": %s,
+		"cur_bid": %d
+	}],
+	"nextFive": [{
+		"song_name": %s,
+		"cur_bid": %d
+	}]
+}" % ()
 
 def connectToDB():
 	con = psycopg2.connect(database="postgres", user="postgres", password="postgres", host="34.67.145.3", port="5432")
-
 	print("Database opened successfully")
 
 @app.route("/sms", methods=['GET', 'POST'])
@@ -42,7 +82,7 @@ def sms_ahoy_reply():
     resp.message("Thank you for your bid!")
     return str(resp)
 
-def send_sms(number):
+def send_sms(number, msg):
 	print(number)
 	account_sid = 'ACf3d029ace0ab2f696f9f971c11696f91'
 	auth_token = '14ac526739b259838c2f67becc772b6f'
@@ -50,7 +90,7 @@ def send_sms(number):
 
 	message = client.messages \
 		.create(
-		body="Your Bidding Won",
+		body=msg,
 		from_='+12028312095',
 		to=number
 	)
