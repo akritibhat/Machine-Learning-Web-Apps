@@ -5,18 +5,31 @@ import pandas as pd
 import numpy as np
 
 # ML Packages
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB
 
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
+import psycopg2
 
+import pprint
+import sys
+
+import spotipy
+import spotipy.util as util
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def index():
+	connectToDB()
+	#send_sms('+18572648772')
 	return render_template("index.html")
+
+
+def connectToDB():
+	con = psycopg2.connect(database="postgres", user="postgres", password="postgres", host="34.67.145.3", port="5432")
+
+	print("Database opened successfully")
 
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_ahoy_reply():
@@ -24,21 +37,22 @@ def sms_ahoy_reply():
     # Start our response
     resp = MessagingResponse()
 
-    # Add a message
-    resp.message("Ahoy! Thanks so much for your message.")
 
+    # Add a message
+    resp.message("Thank you for your bid!")
     return str(resp)
 
-def send_sms():
+def send_sms(number):
+	print(number)
 	account_sid = 'ACf3d029ace0ab2f696f9f971c11696f91'
-	auth_token = 'your_auth_token'
+	auth_token = '14ac526739b259838c2f67becc772b6f'
 	client = Client(account_sid, auth_token)
 
 	message = client.messages \
 		.create(
-		body="Join Earth's mightiest heroes. Like Kevin Bacon.",
-		from_='+15017122661',
-		to='+15558675310'
+		body="Your Bidding Won",
+		from_='+12028312095',
+		to=number
 	)
 
 	print(message.sid)
@@ -73,7 +87,7 @@ def predict():
 		vect = cv.transform(data).toarray()
 		my_prediction = clf.predict(vect)
 	return render_template('results.html',prediction = my_prediction,comment = comment)
-	
+
 
 
 if __name__ == '__main__':
