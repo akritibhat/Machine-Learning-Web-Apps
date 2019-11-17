@@ -1,4 +1,7 @@
+import requests
 from flask import Flask,render_template,request,url_for
+
+import time
 
 #EDA Packages
 import pandas as pd
@@ -9,6 +12,9 @@ import numpy as np
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 import psycopg2
+
+from libsoundtouch import soundtouch_device
+from libsoundtouch.utils import Source, Type
 
 import pprint
 import sys
@@ -21,6 +27,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
+	startDj()
 	connectToDB()
 	#send_sms('+18572648772')
 	return render_template("index.html")
@@ -57,36 +64,91 @@ def send_sms(number):
 
 	print(message.sid)
 
-@app.route("/",methods=['POST'])
-def predict():
-	# Link to dataset from github
-	url = "https://raw.githubusercontent.com/Jcharis/Machine-Learning-Web-Apps/master/Youtube-Spam-Detector-ML-Flask-App/YoutubeSpamMergedData.csv"
-	df= pd.read_csv(url)
-	df_data = df[["CONTENT","CLASS"]]
-	# Features and Labels
-	df_x = df_data['CONTENT']
-	df_y = df_data.CLASS
-    # Extract Feature With CountVectorizer
-	corpus = df_x
-	cv = CountVectorizer()
-	X = cv.fit_transform(corpus) # Fit the Data
-	from sklearn.model_selection import train_test_split
-	X_train, X_test, y_train, y_test = train_test_split(X, df_y, test_size=0.33, random_state=42)
-	#Naive Bayes Classifier
-	from sklearn.naive_bayes import MultinomialNB
-	clf = MultinomialNB()
-	clf.fit(X_train,y_train)
-	clf.score(X_test,y_test)
-	#Alternative Usage of Saved Model
-	# ytb_model = open("naivebayes_spam_model.pkl","rb")
-	# clf = joblib.load(ytb_model)
 
-	if request.method == 'POST':
-		comment = request.form['comment']
-		data = [comment]
-		vect = cv.transform(data).toarray()
-		my_prediction = clf.predict(vect)
-	return render_template('results.html',prediction = my_prediction,comment = comment)
+def playSong(track):
+	print("i am playing song")
+	url = "http://192.168.1.168:8090/speaker"
+
+	payload = "<play_info><app_key>L8QYEJtiHzmtZ6EJg8ETr9WB8HbCdYkl</app_key><url>"+track+"</url><service>service text</service><reason>reason text</reason><message>message text</message><volume>50</volume></play_info>"
+	headers = {
+		'Content-Type': "text/plain",
+		'User-Agent': "PostmanRuntime/7.15.0",
+		'Accept': "*/*",
+		'Cache-Control': "no-cache",
+		'Postman-Token': "f9cd60fb-a7f2-45b4-9398-c5ece6112d1d,abb8f174-a27f-410e-9677-22950e096b83",
+		'Host': "192.168.1.168:8090",
+		'accept-encoding': "gzip, deflate",
+		'content-length': "261",
+		'Connection': "keep-alive",
+		'cache-control': "no-cache"
+	}
+
+	response = requests.request("POST", url, data=payload, headers=headers)
+
+	print(response.text)
+
+
+def playSong1(track):
+	device = soundtouch_device('192.168.1.168')
+	print(device.status().content_item.source_account)
+	#device.power_on()
+	trackToPlay = 'spotify:track:'+track
+	print(device.config.name)
+	resp = device.play_media(Source.SPOTIFY, trackToPlay, '5yz9rfw854rb39vkepel9jh3f')
+	print(resp)
+
+
+def getCurrentSongDuration():
+	URL = "http://192.168.1.168:8090/now_playing"
+	device = soundtouch_device('192.168.1.168')
+	print(device.status().content_item.source_account)
+	# device.power_on()
+	print(device.config.name)
+	resp = (device.status())
+
+	return resp.duration
+
+
+def startDj():
+
+	i = 0
+	track = getNextSong()
+	playSong1(track)
+
+	while i < 6 :
+		track = getNextSong()
+		playSong1(track)
+		timeToSleep = getCurrentSongDuration()
+		time.sleep(timeToSleep)
+		i = i+1
+
+
+
+def getNextSong():
+	return "0tBbt8CrmxbjRP0pueQkyU"
+
+@app.route("/pauseSong", methods=['GET', 'POST'])
+def pauseSong():
+	url = "http://192.168.1.168:8090/key"
+
+	payload = "<key state=\"press\" sender=\"Gabbo\">PLAY_PAUSE</key>"
+	headers = {
+		'Content-Type': "text/plain",
+		'User-Agent': "PostmanRuntime/7.15.0",
+		'Accept': "*/*",
+		'Cache-Control': "no-cache",
+		'Postman-Token': "5d036cf0-9330-42ef-8197-a224cfc4036a,12a332e9-be32-440d-9cf5-dce748f6b16e",
+		'Host': "192.168.1.168:8090",
+		'accept-encoding': "gzip, deflate",
+		'content-length': "50",
+		'Connection': "keep-alive",
+		'cache-control': "no-cache"
+	}
+
+	response = requests.request("POST", url, data=payload, headers=headers)
+
+	print(response.text)
+
 
 
 
