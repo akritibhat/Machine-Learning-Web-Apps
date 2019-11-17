@@ -27,22 +27,6 @@
     <expand />
     <select />
   </component>
-  <component name="FindInProjectRecents">
-    <findStrings>
-      <find>time</find>
-      <find>TIME</find>
-      <find>durat</find>
-      <find>total</find>
-      <find>start</find>
-      <find>index</find>
-      <find>dj</find>
-      <find>currentBid</find>
-      <find>current</find>
-      <find>songPlayedName</find>
-      <find>curr</find>
-      <find>update</find>
-    </findStrings>
-  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
