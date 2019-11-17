@@ -1,0 +1,48 @@
+body {
+  text-align: center;
+  background-color: gainsboro;
+}
+
+h1 {
+  font-family: 'Roboto', sans-serif;
+  color: dodgerblue;
+  font-size: 70px;
+  text-shadow: 1.5px 1.5px gray;
+}
+
+h2 {
+  font-family: 'Roboto', sans-serif;
+  color: #787878;
+  font-size: 25px;
+  text-shadow: 1px 1px lightgrey;
+  margin: 0;
+}
+
+h3 {
+  margin-top: 7%;
+  font-family: 'Roboto', sans-serif;
+  color: dodgerblue;
+  font-size: 30px;
+  text-shadow: 1px 1px lightgrey;
+}
+
+h4 {
+  font-family: 'Roboto', sans-serif;
+  color: #787878;
+  font-size: 25px;
+  text-shadow: 0.5px 0.5px lightgrey;
+}
+
+h5 {
+  width: 20%;
+  float: left;
+  font-family: 'Roboto', sans-serif;
+  color: #787878;
+  font-size: 25px;
+  text-shadow: 0.5px 0.5px lightgrey;
+  margin-bottom: 0;
+}
+
+h5.song {
+  font-size: 12.5px;
+}
