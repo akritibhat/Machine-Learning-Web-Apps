@@ -15,8 +15,25 @@ app = Flask(__name__)
 songBeingPlayed = 0
 songPlayedName = "test"
 
+current_volume = 50
+
+# Volume up
+# @app.route("/volumeUp", methods=['POST'])
+# def volume_up():
+# 	new_volume = current_volume + 20
+# 	change_volume(new_volume)
+# 	current_volume = new_volume
+#
+# # Volume down
+# @app.route("/volumeDown", methods=['POST'])
+# def volume_down():
+#     new_volume = current_volume - 20
+#     change_volume(new_volume)
+#     current_volume = new_volume
+
 @app.route("/")
 def index():
+	startDj()
 	return render_template("index.html")
 
 @app.route("/sms", methods=['GET', 'POST'])
@@ -50,7 +67,7 @@ def send_sms(number, messageBody):
 
 def playSong1(track):
 	device = soundtouch_device('192.168.1.168')
-	print(device.status().content_item.source_account)
+
 	#device.power_on()
 	trackToPlay = 'spotify:track:'+track
 	print(device.config.name)
@@ -74,7 +91,6 @@ def startDj():
 	while i < 6 :
 		track = getNextSong()
 		playSong1(track)
-		print(currentBid())
 		timeToSleep = getCurrentSongDuration()
 		time.sleep(timeToSleep)
 		i = i+1
@@ -87,7 +103,12 @@ def getNextSong():
 								  database='heroku_67d188873be555e')
 
 	cursor = cnx.cursor()
-	query = ("select id, song_name, song_id from songs order by bid_amt desc limit 1;")
+
+	first_query = 'update songs set playsong = 1 where playsong = 3'
+	cursor.execute(first_query)
+	cnx.commit()
+
+	query = ("select id, song_name, song_id from songs where playsong = 0 order by bid_amt desc limit 1;")
 	cursor.execute(query)
 
 	for  (id) in cursor:
@@ -96,7 +117,7 @@ def getNextSong():
 		songBeingPlayed = id_temp
 		id_song = id[0]
 
-	BASE_URL = 'delete from songs where id = '
+	BASE_URL = 'update songs set playsong = 3 where id = '
 
 	query2 = (BASE_URL +  str(id_song) +';')
 	cursor.execute(query2)
@@ -129,6 +150,19 @@ def pauseSong():
 
 @app.route("/current", methods=['GET', 'POST'])
 def currentSong():
+	cnx = mysql.connector.connect(user='be3bc40df921df', password='c7708685',
+								  host='us-cdbr-iron-east-04.cleardb.net',
+								  database='heroku_67d188873be555e')
+
+	cursor = cnx.cursor()
+	query = ("select id, song_name, song_id from songs where playsong = 3;")
+	cursor.execute(query)
+	for (id) in cursor:
+		id_temp = id[2]
+		songPlayedName1= id[1]
+		songBeingPlayed = id_temp
+		id_song = id[0]
+		return songPlayedName1
 	return songPlayedName
 
 
@@ -172,24 +206,47 @@ def update(phoneNum, bid, song_id):
 	for (id) in cursor:
 		user_id = id[0]
 		user_bid = id[1]
-		if bid > id[0]:
+		if int(bid) > int(id[1]):
 			return False
 
 	query4 = ("select bid_amt from songs where id=" + str(song_id) + ";")
 	cursor.execute(query4)
 
+	song_bid = 0
 	for (id) in cursor:
 		song_bid = id[0]
 
-	query2 = ("update users set credits = " + str(user_bid - bid) + " where id = " + str(user_id) + ";")
+	query2 = ("update users set credits = " + str(int(user_bid) - int(bid)) + " where id = " + str(user_id) + ";")
 	cursor.execute(query2)
-	query3 = ("update songs set bid_amt = " + str(song_bid + bid) + " where id =" + str(song_id) + ";")
+	cnx.commit()
+	query3 = ("update songs set bid_amt = " + str(int(song_bid) + int(bid)) + " where id =" + str(song_id) + ";")
 	cursor.execute(query3)
 
 	cnx.commit()
 	cursor.close()
 	cnx.close()
 	return True
+
+
+
+@app.route("/volume", methods=['POST'])
+def change_volume(desired_volume):
+    url = "http://192.168.1.168:8090/volume"
+    payload = "<volume>%d</volume>" % desired_volume
+    headers = {
+        'Content-Type': "text/plain",
+        'User-Agent': "PostmanRuntime/7.15.0",
+        'Accept': "*/*",
+        'Cache-Control': "no-cache",
+        'Postman-Token': "43ba8630-7c82-4265-bc13-0a1ce1e00b2e,625dc2c5-40fe-4e4b-83aa-8da21ec7e521",
+        'Host': "192.168.1.168:8090",
+        'accept-encoding': "gzip, deflate",
+        'content-length': "19",
+        'Connection': "keep-alive",
+        'cache-control': "no-cache"
+        }
+    response = requests.request("POST", url, data=payload, headers=headers)
+
 
 
 if __name__ == '__main__':
