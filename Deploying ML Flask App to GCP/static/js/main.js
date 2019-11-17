@@ -1,3 +1,5 @@
+console.log("fefwef")
+
 $(document).ready(function() {
   changeCurrentSong("hi");
   changeNextSongs("song", "song", "song", "song", "song");

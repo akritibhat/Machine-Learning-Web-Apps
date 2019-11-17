@@ -10,13 +10,13 @@ import sys
 import spotipy
 import spotipy.util as util
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 
 @app.route("/")
 def index():
-	connectToDB()
-	#send_sms('+18572648772')
-	return render_template("index.html")
+	# connectToDB()
+	#send_sms('+18572648772',"Your Bidding Won")
+	return render_template("main.html")
 
 def placeBid(id, bid):
 	con.execute('select credits from users where id={};'.format(bid))
@@ -28,16 +28,25 @@ def placeBid(id, bid):
 		send_sms(con.fetchone(), "You don't have enough credits. Credits:{}".format(credits))
 
 def getNextSong():
-	song_id = int(con.execute('select id from songs order by bid_amount desc limit 1;'))
+	con.execute('select id from songs order by bid_amount desc limit 1;')
+	nSong_id=con.fetchone()
+	con.execute('update songs set cur_song='t' where id={}'.format(nSong_id))
+	return nSong_id
+
+def deleteSong(id):
 	con.execute('delete from songs where id={};'.format(id))
 
-def getJSON():
-	x=[con.execute('select sum(cur_bid) from songs;'),
-	con.execute('select song_name from songs where cur_song = 't';'),
-	con.execute('select song_name from songs where cur_song = 't';'),
-	con.execute('select cur_bid from songs where cur_song = 't';'),
 
-	 ]
+def getJSON():
+	con.execute('select sum(cur_big) from songs;')
+	totalRaised = con.fetchone()
+	con.execute('select song_name from songs where cur_song='t';)
+	current = con.fetchone()
+	con.execute('select song_name, cur_bid from songs order by cur_bid desc limit 6;')
+	vals = con.fetchall()
+	while len(vals) < 6:
+		vals.append("N/A", 0)
+
 	return {
 	"totalRaised": [{
 		"cur_bid": %d
@@ -65,7 +74,11 @@ def getJSON():
 		"song_name": %s,
 		"cur_bid": %d
 	}]
-}" % ()
+}" % (totalRaised, current, vals[0][0], 
+	vals[0][1],vals[1][0], vals[1][1],
+	vals[2][0], vals[2][1],vals[3][0],
+	vals[3][1],vals[4][0], vals[4][1],
+	vals[5][0], vals[5][1],)
 
 def connectToDB():
 	con = psycopg2.connect(database="postgres", user="postgres", password="postgres", host="34.67.145.3", port="5432")
@@ -76,7 +89,6 @@ def sms_ahoy_reply():
     """Respond to incoming messages with a friendly SMS."""
     # Start our response
     resp = MessagingResponse()
-
 
     # Add a message
     resp.message("Thank you for your bid!")
@@ -96,39 +108,6 @@ def send_sms(number, msg):
 	)
 
 	print(message.sid)
-
-@app.route("/",methods=['POST'])
-def predict():
-	# Link to dataset from github
-	url = "https://raw.githubusercontent.com/Jcharis/Machine-Learning-Web-Apps/master/Youtube-Spam-Detector-ML-Flask-App/YoutubeSpamMergedData.csv"
-	df= pd.read_csv(url)
-	df_data = df[["CONTENT","CLASS"]]
-	# Features and Labels
-	df_x = df_data['CONTENT']
-	df_y = df_data.CLASS
-    # Extract Feature With CountVectorizer
-	corpus = df_x
-	cv = CountVectorizer()
-	X = cv.fit_transform(corpus) # Fit the Data
-	from sklearn.model_selection import train_test_split
-	X_train, X_test, y_train, y_test = train_test_split(X, df_y, test_size=0.33, random_state=42)
-	#Naive Bayes Classifier
-	from sklearn.naive_bayes import MultinomialNB
-	clf = MultinomialNB()
-	clf.fit(X_train,y_train)
-	clf.score(X_test,y_test)
-	#Alternative Usage of Saved Model
-	# ytb_model = open("naivebayes_spam_model.pkl","rb")
-	# clf = joblib.load(ytb_model)
-
-	if request.method == 'POST':
-		comment = request.form['comment']
-		data = [comment]
-		vect = cv.transform(data).toarray()
-		my_prediction = clf.predict(vect)
-	return render_template('results.html',prediction = my_prediction,comment = comment)
-
-
 
 if __name__ == '__main__':
 	app.run(host="127.0.0.1",port=8080,debug=True)
