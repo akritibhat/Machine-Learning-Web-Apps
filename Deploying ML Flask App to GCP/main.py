@@ -27,8 +27,8 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-	startDj()
-	connectToDB()
+	#startDj()
+	#connectToDB()
 	#send_sms('+18572648772')
 	return render_template("index.html")
 
