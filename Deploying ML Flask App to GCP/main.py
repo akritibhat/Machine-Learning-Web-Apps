@@ -9,6 +9,9 @@ import numpy as np
 
 # ML Packages
 
+# Current Volume
+current_volume = 50
+
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
 import psycopg2
@@ -37,6 +40,37 @@ def connectToDB():
 	con = psycopg2.connect(database="postgres", user="postgres", password="postgres", host="34.67.145.3", port="5432")
 
 	print("Database opened successfully")
+
+
+@app.route("/volume", methods=['POST'])
+def change_volume(desired_volume):
+    url = "http://192.168.1.168:8090/volume"
+    payload = "<volume>%d</volume>" % desired_volume
+    headers = {
+        'Content-Type': "text/plain",
+        'User-Agent': "PostmanRuntime/7.15.0",
+        'Accept': "*/*",
+        'Cache-Control': "no-cache",
+        'Postman-Token': "43ba8630-7c82-4265-bc13-0a1ce1e00b2e,625dc2c5-40fe-4e4b-83aa-8da21ec7e521",
+        'Host': "192.168.1.168:8090",
+        'accept-encoding': "gzip, deflate",
+        'content-length': "19",
+        'Connection': "keep-alive",
+        'cache-control': "no-cache"
+        }
+    response = requests.request("POST", url, data=payload, headers=headers)
+
+# Volume up
+def volume_up():
+    new_volume = current_volume + 20
+    change_volume(new_volume)
+    current_volume = new_volume
+
+# Volume down
+def volume_down():
+    new_volume = current_volume - 20
+    change_volume(new_volume)
+    current_volume = new_volume
 
 @app.route("/sms", methods=['GET', 'POST'])
 def sms_ahoy_reply():
