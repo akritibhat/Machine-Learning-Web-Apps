@@ -1,6 +1,7 @@
 from flask import Flask,render_template,request,url_for
 
 #EDA Packages
+import os
 import pandas as pd
 import numpy as np
 import psycopg2
@@ -17,6 +18,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
+	print("Hello")
 	# When deployed to App Engine, the `GAE_ENV` environment variable will be
 	# set to `standard`
 	if os.environ.get('GAE_ENV') == 'standard':
@@ -27,7 +29,7 @@ def index():
 	# Set up Cloud SQL Proxy (cloud.google.com/sql/docs/mysql/sql-proxy)
 	# so that your application can use 127.0.0.1:3306 to connect to your
 	# Cloud SQL instance
-		host = '127.0.0.1'
+		host = '34.67.145.3'
 
 	cnx = psycopg2.connect(dbname=db_name, user=db_user,
 	                   password=db_password, host=host)
@@ -38,7 +40,7 @@ def index():
 	cnx.commit()
 	cnx.close()
 
-	return (result)
+	return ("fWFWFEewf")
 
 @app.route("/",methods=['POST'])
 def predict():
